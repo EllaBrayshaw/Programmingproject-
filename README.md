@@ -1,14 +1,14 @@
 # Programmingproject-
 MATH5090 programming project 
-#### Assignment 2.3
-# Type I error: prob of declaring successful result at end of stage 2
-# Type II error : probs of declaring a unsuccessful trial (When fut < c)
+ # Assignment 2.3
+ # Type I error: prob of declaring successful result at end of stage 2
+ # Type II error : probs of declaring a unsuccessful trial (When fut < c)
 
 
-set.seed(283765)
+ set.seed(283765)
 
-# set theta depending on the null or alternate hypothesis 
-function(lambda, gamma, theta, n1, n2, a, b){
+ # set theta depending on the null or alternate hypothesis 
+ function(lambda, gamma, theta, n1, n2, a, b){
   #Number of simulations and empty vectors
   M <- 10^4
   T1_1 <- rep(NA,M)
