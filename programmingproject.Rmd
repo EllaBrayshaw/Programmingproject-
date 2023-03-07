@@ -1,0 +1,27 @@
+---
+title: "Project"
+author: "Ella Brayshaw"
+date: "2023-03-07"
+output: html_document
+---
+# MATH5090 - Assignment 2 
+## Ella Brayshaw 
+## Student number : 201669865
+
+### Introduction
+In this report I will be decribing and evaluating the BOP2 trial design. I will begin by explaining the key featues and steps. Then I will apply the BOP2 method to the reserve trial scenario that we have been provided with. 
+
+We are interested in looking at the progression between stage 1 to stage 2, then from stage 2 to a definitive phase III trial; these progressions are based on the posterior probability of futility. To begin to show the meaning of this idea, I will set $Y_i$ to be the number of observations in the $n_i$ particpants ($n_1$ = number of participants in stage 1 and $n_2 = n_1 + ??$ = participants at the end of stage 2 ). $Y_i$ follows a binomial distribution with probability of success, $\theta$, following a  prior beta distribution with parameters $a_0$ and $b_0$.
+
+After observing the response $y_i$ we can then calculate the posterior distribution using Bayes Theorem :  
+$$ P(\theta | y_i) = \frac{P(y_i|\theta)*P(\theta)}{P(y_i)} $$
+$P(\theta|y_i)$ ~ beta($a_i$, $b_i$), where $a_i = a + y_i$ and $ b_i = b + n_i - y_i$. 
+
+
+
+```{r}
+
+```
+
+
+
