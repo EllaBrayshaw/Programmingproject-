@@ -18,11 +18,11 @@ $$ P(\theta | y_i) = \frac{P(y_i|\theta)*P(\theta)}{P(y_i)} $$
  This results in the posterior probability also following a beta distribution : $P(\theta|y_i)$ ~ beta($a_i$, $b_i$), where $a_i = a + y_i$ and $b_i = b + n_i - y_i$. 
  
 We use this posterior probability to determine progression through the probability of futility. We define the probability of futility as the probability of a response, $\theta < 0.5$ given the observed responses : 
-$$P(\theta < 0.5 | y_i)$$. We ideally want this probability to be low as the probability of observing is response is poor. To decide whether we carry on to the next stage we need to define a threshold which varies at each stage to compare this too, we define this threshold to be $$C(n_i) = 1 - \lambda(\frac{n_i}{n_2})^{\gamma}$$ In this report we will investigate choices of these stopping rule parameters $\lambda$ and $\gamma$
+$$P(\theta < 0.5 | y_i)$$. We ideally want this probability to be low as the probability of observing a response is poor. To decide whether we carry on to the next stage we need to define a threshold which varies at each stage to compare this too, we define this threshold to be $$C(n_i) = 1 - \lambda(\frac{n_i}{n_2})^{\gamma}$$ In this report we will investigate choices of these stopping rule parameters $\lambda$ and $\gamma$
 I defined functions which calculated the probability of futility as well as the thresholds in the Functions. R folder and these can be called by :
 
 ```{r}
-source("./R/functions.R")
+#source("./R/functions.R")
 #probs_futility <- prob_futility(a1, b1, a2, b2) 
 
 #thresholds <- progression_threshold(lambda, gamma, n1, n2)
@@ -32,9 +32,21 @@ source("./R/functions.R")
 
 
 
-```{r}
 
+
+I will now apply the BOP2 trial design to the RESERVE trial. The RESERVE (pREciSion markERs for VEnetoclax in multiple myeloma) trial is a clinical trial which is looking at the effects of treating patients with relapsed/refractory multiple myeloma (RRMM) with Vendex in combination with CyVenDex. The RESERVE trial is currently in phase II and we are wanting to investigate if the treatment has a large enough impact on tumor size to warrant a larger phase III trial. As there is uncertainty to the effectiveness and toxicity of the drug we want to work in 2 stages where the first stage has a lower sample size. This has better ethical, financial and efficiency considerations. In the this report i will be using $n_1$ participants in stage one of the trial and $\tilde{n_2}$ participants in stage 2, this is if we observe enough responses in stage 1 to move onto stage 2. This leads to a total of $n_2 = n_1 + \tilde{n_2}$ participants at the end of stage 2. 
+
+To begin my exploration of the RESERVE trial I wan to find the optimal values of $\lambda$ and $\gamma$ for a fixed $n_1$ and $n_2$ which result in  a type I error rate of at most 0.05 under the null hypothesis of $H_0 : \theta =0.5$ and the type II error rate of at most 0.2 under the alternative hypothesis of $H_1 : \theta = 0.7$. Therefore I will evaluate the type I and type II error rates over a grid of values for $\lambda$ and $\gamma$ and observe which of these have the results we want. For the bounds for the parameters I used the fact that $0\leq \lambda \leq1$ and then a plot to choose $\gamma \ge0$ :
+
+
+```{r, echo=FALSE,figures-side, fig.show="hold", out.width="50%"}
+
+g<-seq(0,10,length.out = 100)
+
+plot(1-0.3*(0.5)^g, ylab = "Decision threshold", main = "Plot for lambda = 0.3")
+plot(1-0.7*(0.5)^g, ylab = "Decision threshold", main = "Plot for lambda = 0.7")
 ```
 
+Here I have looked at how the decision threshold, $C(n_i) = 1 - \lambda(\frac{n_i}{n_2})^{\gamma}$, changes for different values of $\gamma$ ( which I created with a sequence ). I chose the value of $\frac{n_i}{n_2}=0.5$, as $n_1 < n_2$ hence the faction will always be less than 1. 
 
 
