@@ -18,7 +18,8 @@ $$ P(\theta | y_i) = \frac{P(y_i|\theta)*P(\theta)}{P(y_i)} $$
  This results in the posterior probability also following a beta distribution : $P(\theta|y_i)$ ~ beta($a_i$, $b_i$), where $a_i = a + y_i$ and $b_i = b + n_i - y_i$. 
  
 We use this posterior probability to determine progression through the probability of futility. We define the probability of futility as the probability of a response, $\theta < 0.5$ given the observed responses : 
-$$P(\theta < 0.5 | y_i)$$. We ideally want this probability to be low as the probability of observing a response is poor. To decide whether we carry on to the next stage we need to define a threshold which varies at each stage to compare this too, we define this threshold to be $$C(n_i) = 1 - \lambda(\frac{n_i}{n_2})^{\gamma}$$ In this report we will investigate choices of these stopping rule parameters $\lambda$ and $\gamma$
+$$P(\theta < 0.5 | y_i) $$
+We ideally want this probability to be low as the probability of observing a response is poor. To decide whether we carry on to the next stage we need to define a threshold which varies at each stage to compare this too, we define this threshold to be $$C(n_i) = 1 - \lambda(\frac{n_i}{n_2})^{\gamma}$$ In this report we will investigate choices of these stopping rule parameters $\lambda$ and $\gamma$
 I defined functions which calculated the probability of futility as well as the thresholds in the Functions. R folder and these can be called by :
 
 ```{r}
@@ -44,9 +45,42 @@ To begin my exploration of the RESERVE trial I wan to find the optimal values of
 g<-seq(0,10,length.out = 100)
 
 plot(1-0.3*(0.5)^g, ylab = "Decision threshold", main = "Plot for lambda = 0.3")
+abline(v=60, col="magenta")
+
 plot(1-0.7*(0.5)^g, ylab = "Decision threshold", main = "Plot for lambda = 0.7")
+abline(v=60, col="magenta")
 ```
 
-Here I have looked at how the decision threshold, $C(n_i) = 1 - \lambda(\frac{n_i}{n_2})^{\gamma}$, changes for different values of $\gamma$ ( which I created with a sequence ). I chose the value of $\frac{n_i}{n_2}=0.5$, as $n_1 < n_2$ hence the faction will always be less than 1. 
+Here I have looked at how the decision threshold, $C(n_i) = 1 - \lambda(\frac{n_i}{n_2})^{\gamma}$, changes for different values of $\gamma$ ( which I created with a sequence ). I chose the value of $\frac{n_i}{n_2}=0.5$, as $n_1 < n_2$ hence the faction will always be less than 1. These plots show that beyond a vale of $\gamma = 6$ there is little change to the value of the decision threshold, $C(n_i)$. Hence I will chose the bound $0\le \gamma \le 6$. I have the created a grid of both the values of $\lambda$ and $\gamma$ over the chosen intervals and have named this "lambda_gamma": 
+
+```{r}
+lambda_gamma_seq <- expand.grid(lambda = seq(0, 1, length.out = 50),
+                       gamma = seq(0, 6, length.out = 50))
+```
+
+I have chosen the length of each vector for the parameter to be 50 as ....
+
+To evaluate the type I and type II error rate over this grid I require to call on a function that I have coded; such functions I have stored in a R script of this R project called "Function.R". Using the command : 
+
+```{r}
+source("./R/functions.R")
+```
+
+I can easily make use of these functions without having to include the code each time. 
+
+In here is a function called "Type1_exact", which I will now use to evaluate the probability of a type 1 error over the values in "lambda_gamma". A type 1 error is such that we declare a successful trial at the end of stage 2, under the null hypothesis that $\theta = 0.5$. This means that we require $P(\theta < 0.5 | y_1) < C(n_1)$ and $P(\theta < 0.5 | y_1, y_2) < C(n_2)$, we require stage 1 to be successful to move to stage 2 hence both of these are needed. To begin I will set $n_1 = 30$ and $n_2 = 60$. 
+
+```{r}
+source("./R/functions.R")
+#Type1_prob <- Type1_exact(lambda, gamma, n1, n2)
+#evaluate_seq <- evaluate_seq_T1(lambda_gamma_seq, n1, n2)
+T1s <- apply(lambda_gamma_seq, 1, evaluate_seq_T1, n1=30, n2=60)
+seq_T1s_bind <- cbind(lambda_gamma_seq, T1s)
+plot(seq_T1s_bind$lambda,seq_T1s_bind$T1s)
+```
+
+
+
+
 
 
