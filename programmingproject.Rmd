@@ -20,19 +20,7 @@ $$ P(\theta | y_i) = \frac{P(y_i|\theta)*P(\theta)}{P(y_i)} $$
 We use this posterior probability to determine progression through the probability of futility. We define the probability of futility as the probability of a response, $\theta < 0.5$ given the observed responses : 
 $$P(\theta < 0.5 | y_i) $$
 We ideally want this probability to be low as the probability of observing a response is poor. To decide whether we carry on to the next stage we need to define a threshold which varies at each stage to compare this too, we define this threshold to be $$C(n_i) = 1 - \lambda(\frac{n_i}{n_2})^{\gamma}$$ In this report we will investigate choices of these stopping rule parameters $\lambda$ and $\gamma$
-I defined functions which calculated the probability of futility as well as the thresholds in the Functions. R folder and these can be called by :
-
-```{r}
-#source("./R/functions.R")
-#probs_futility <- prob_futility(a1, b1, a2, b2) 
-
-#thresholds <- progression_threshold(lambda, gamma, n1, n2)
-
-```
-
-
-
-
+I defined functions which calculated the probability of futility as well as the thresholds in the Functions.R folder ......
 
 
 I will now apply the BOP2 trial design to the RESERVE trial. The RESERVE (pREciSion markERs for VEnetoclax in multiple myeloma) trial is a clinical trial which is looking at the effects of treating patients with relapsed/refractory multiple myeloma (RRMM) with Vendex in combination with CyVenDex. The RESERVE trial is currently in phase II and we are wanting to investigate if the treatment has a large enough impact on tumor size to warrant a larger phase III trial. As there is uncertainty to the effectiveness and toxicity of the drug we want to work in 2 stages where the first stage has a lower sample size. This has better ethical, financial and efficiency considerations. In the this report i will be using $n_1$ participants in stage one of the trial and $\tilde{n_2}$ participants in stage 2, this is if we observe enough responses in stage 1 to move onto stage 2. This leads to a total of $n_2 = n_1 + \tilde{n_2}$ participants at the end of stage 2. 
@@ -40,7 +28,7 @@ I will now apply the BOP2 trial design to the RESERVE trial. The RESERVE (pREciS
 To begin my exploration of the RESERVE trial I wan to find the optimal values of $\lambda$ and $\gamma$ for a fixed $n_1$ and $n_2$ which result in  a type I error rate of at most 0.05 under the null hypothesis of $H_0 : \theta =0.5$ and the type II error rate of at most 0.2 under the alternative hypothesis of $H_1 : \theta = 0.7$. Therefore I will evaluate the type I and type II error rates over a grid of values for $\lambda$ and $\gamma$ and observe which of these have the results we want. For the bounds for the parameters I used the fact that $0\leq \lambda \leq1$ and then a plot to choose $\gamma \ge0$ :
 
 
-```{r, echo=FALSE,figures-side, fig.show="hold", out.width="50%"}
+```{r, echo=FALSE, fig.show="hold", out.width="50%"}
 
 g<-seq(0,10,length.out = 100)
 
@@ -70,17 +58,87 @@ I can easily make use of these functions without having to include the code each
 
 In here is a function called "Type1_exact", which I will now use to evaluate the probability of a type 1 error over the values in "lambda_gamma". A type 1 error is such that we declare a successful trial at the end of stage 2, under the null hypothesis that $\theta = 0.5$. This means that we require $P(\theta < 0.5 | y_1) < C(n_1)$ and $P(\theta < 0.5 | y_1, y_2) < C(n_2)$, we require stage 1 to be successful to move to stage 2 hence both of these are needed. To begin I will set $n_1 = 30$ and $n_2 = 60$. 
 
+
+
 ```{r}
 source("./R/functions.R")
 #Type1_prob <- Type1_exact(lambda, gamma, n1, n2)
 #evaluate_seq <- evaluate_seq_T1(lambda_gamma_seq, n1, n2)
 T1s <- apply(lambda_gamma_seq, 1, evaluate_seq_T1, n1=30, n2=60)
+```
+
+The code above shows me applying the grid of $\lambda$'s and $\gamma$'s over a function named "evaluate sequence" which allows us to evaluate another function named "Type1_exact" over the grid. The Type1_exact is a function of $\lambda$, $\gamma$, $n_1$ and $n_2$ which also uses another function in the folder, this function is called "prob_y1_y2" and it calculates the probability of observing the responses $y_1$ and $y_2$ within the number of participants $n_1$ and $n_2$ respectively. 
+
+To see which values of $\lambda$ and $\gamma$ are required to get a Type I error of $\le 0.05$, I will plot Type 1 error vs $\lambda$ and $\gamma$ separately. the plot for $\gamma$ vs Type I error here appesrs to be very unhelpful, hence i will begin by choosing a optimal $\lambda$. The clustering effect shown in graph is gievn by each cluster represtenting a differnt value of the other parameter $\gamma$, from the lines I have added (blue at Type 1 = 0.05 and green at $\lambda = 0.96$), I observe that to the right of $\lambda = 0.96$, the Type I error is always $\le 0.05$. However for certain choices of $\gamma$, the combination with $\lambda = 0.94$ and $\lambda = 0.92$ results in the desired bound for type I error.
+
+```{r, fig.show="hold", out.width="50%"}
 seq_T1s_bind <- cbind(lambda_gamma_seq, T1s)
+seq_T1s_bind$lambda <- round(seq_T1s_bind$lambda, 2)
+seq_T1s_bind$gamma <- round(seq_T1s_bind$gamma, 2)
+
+
 plot(seq_T1s_bind$lambda,seq_T1s_bind$T1s)
+abline(h=0.05, col = "blue")
+abline(v=0.96, col ="green")
+
+plot(seq_T1s_bind$gamma,seq_T1s_bind$T1s)
+```
+
+To look further into optimal values for $\gamma$, I will re-create the plot for only the suitable values of $\lambda$ mentioned above.  
+
+```{r, echo = FALSE, fig.show="hold", out.width="50%"}
+sub1 <- seq_T1s_bind[seq_T1s_bind$lambda == 0.98, ]  
+sub2 <- seq_T1s_bind[seq_T1s_bind$lambda == 0.96, ]
+sub3 <- seq_T1s_bind[seq_T1s_bind$lambda == 0.94, ]
+sub4 <- seq_T1s_bind[seq_T1s_bind$lambda == 0.92, ]
+
+plot(sub1$gamma, sub1$T1s)
+plot(sub2$gamma, sub2$T1s)
+plot(sub3$gamma, sub3$T1s)
+abline(h=0.05, col = "red")
+plot(sub4$gamma, sub4$T1s)
+abline(h=0.05, col = "red")
+```
+
+
+I will now look at the optimal values for the type II error rate 
+
+
+```{r}
+source("./R/functions.R")
+T2s <- apply(lambda_gamma_seq, 1, evaluate_seq_T2, n1=30, n2=60)
 ```
 
 
 
+```{r}
+seq_T2s_bind <- cbind(lambda_gamma_seq, T2s)
+#Make values of lambda and gamma 2 decimal places 
+seq_T2s_bind$lambda <- round(seq_T2s_bind$lambda, 2)
+seq_T2s_bind$gamma <- round(seq_T2s_bind$gamma, 2)
 
+plot(seq_T2s_bind$lambda, seq_T2s_bind$T2s)
+
+plot(seq_T2s_bind$gamma, seq_T2s_bind$T2s)
+```
+
+```{r}
+# By inspection can see Type 2 equal one see what values of gamma 
+seq_T2s_bind$T2s <- round(seq_T2s_bind$T2s, 3)
+
+sub5 <- seq_T2s_bind[seq_T2s_bind$T2s == 1, ]
+# so when lambda = 1 T2 not in the range
+
+```
+
+
+```{r}
+# Type 1 errors lowest for lambda = 0.98
+sub6 <- seq_T2s_bind[seq_T2s_bind$lambda == 0.98, ]
+plot(sub6$gamma, sub6$T2s)
+
+sub7 <- seq_T2s_bind[seq_T2s_bind$lambda == 0.94, ]
+# type 2 error gets smaller as lambda gets smaller
+```
 
 
