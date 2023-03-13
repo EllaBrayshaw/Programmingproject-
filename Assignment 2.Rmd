@@ -163,6 +163,75 @@ T1s_60 <- apply(lambda_gamma_seq, 1, evaluate_seq_T1, n1=60, n2=120)
 T2s_60 <- apply(lambda_gamma_seq, 1, evaluate_seq_T2, n1=60, n2=120)
 ```
 
+Making the grids of lambda gammas then type 1 and type 2 
+
+```{r}
+seq_T1s_60_bind <- cbind(lambda_gamma_seq, T1s_60)
+seq_T1s_60_bind$lambda <- round(seq_T1s_60_bind$lambda, 2)
+seq_T1s_60_bind$gamma <- round(seq_T1s_60_bind$gamma, 2)
+
+seq_T2s_60_bind <- cbind(lambda_gamma_seq, T2s_60)
+seq_T2s_60_bind$lambda <- round(seq_T2s_60_bind$lambda, 2)
+seq_T2s_60_bind$gamma <- round(seq_T2s_60_bind$gamma, 2)
+
+```
+
+plots for type 1 failry simialr to before, same bounds for lambda again 
+
+```{r echo = FALSE, fig.show="hold", out.width="50%"}
+plot(seq_T1s_60_bind$lambda,seq_T1s_60_bind$T1s)
+abline(h=0.05, col = "blue")
+
+plot(seq_T1s_60_bind$gamma,seq_T1s_60_bind$T1s)
+```
+some for lambda = 0.94 fall below max 
+
+```{r}
+sub8 <- seq_T1s_60_bind[seq_T1s_60_bind$lambda == 0.98, ]  
+sub9 <- seq_T1s_60_bind[seq_T1s_60_bind$lambda == 0.96, ]
+sub10 <- seq_T1s_60_bind[seq_T1s_60_bind$lambda == 0.94, ]
+sub11 <- seq_T1s_60_bind[seq_T1s_60_bind$lambda == 0.92, ]
+
+plot(sub10$gamma, sub10$T1s)
+abline(h=0.05, col = "red")
+plot(sub11$gamma, sub11$T1s)
+abline(h=0.05, col = "red")
+```
+plots for type 2, points much closer together
+
+```{r}
+plot(seq_T2s_60_bind$lambda, seq_T2s_60_bind$T2s_60)
+abline(h=0.2, col = "red")
+plot(seq_T2s_60_bind$gamma, seq_T2s_60_bind$T2s_60)
+abline(h=0.2, col = "red")
+```
+T2 = 1 when lamba = 1 again so same values
+```{r}
+seq_T2s_60_bind$T2s_60 <- round(seq_T2s_60_bind$T2s_60, 3)
+
+sub12 <- seq_T2s_60_bind[seq_T2s_60_bind$T2s_60 == 1, ]
+head(sub12)
+```
+```{r}
+sub13 <- seq_T2s_60_bind[seq_T2s_60_bind$lambda == 0.98, ]
+plot(sub13$gamma, sub13$T2s_60)
+abline(h = 0.2, col = "red")
+
+sub14 <- seq_T2s_60_bind[seq_T2s_60_bind$lambda == 0.96, ]
+plot(sub14$gamma, sub14$T2s_60)
+abline(h = 0.2, col = "red")
+
+sub15 <- seq_T2s_60_bind[seq_T2s_60_bind$lambda == 0.94, ]
+plot(sub14$gamma, sub14$T2s_60)
+abline(h = 0.2, col = "red")
+```
+for type 2 all except when lambda = 1 are below range, lambda = 0.94 leads to lowest type 2, so need gamma which leads to tyupe 1 below range. this shows gamma to be in (0, 0.24]. take of 0.24 as gets lower t2 but little change to t1. Gets T1 error of 0.045 and type 2 of 0.011
+```{r}
+sub16 <- seq_T1s_60_bind[seq_T1s_60_bind$lambda == 0.94, ]
+head(sub16)
+
+head(sub15)
+```
 
 
 
