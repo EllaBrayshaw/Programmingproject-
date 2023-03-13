@@ -1,12 +1,12 @@
 ---
-title: "Project"
+title: "MATH5090 - Assignment 2"
 author: "Ella Brayshaw"
 date: "2023-03-07"
 output: html_document
----
-# MATH5090 - Assignment 2 
-## Ella Brayshaw 
-## Student number : 201669865
+
+## MATH5090 - Assignment 2
+## Ella Brayshaw
+### student number : 
 
 ### Introduction
 In this report I will be describing and evaluating the BOP2 trial design. I will begin by explaining the key features and steps. Then I will apply the BOP2 method to the reserve trial scenario that we have been provided with. 
@@ -62,16 +62,14 @@ In here is a function called "Type1_exact", which I will now use to evaluate the
 
 ```{r}
 source("./R/functions.R")
-#Type1_prob <- Type1_exact(lambda, gamma, n1, n2)
-#evaluate_seq <- evaluate_seq_T1(lambda_gamma_seq, n1, n2)
 T1s <- apply(lambda_gamma_seq, 1, evaluate_seq_T1, n1=30, n2=60)
 ```
 
 The code above shows me applying the grid of $\lambda$'s and $\gamma$'s over a function named "evaluate sequence" which allows us to evaluate another function named "Type1_exact" over the grid. The Type1_exact is a function of $\lambda$, $\gamma$, $n_1$ and $n_2$ which also uses another function in the folder, this function is called "prob_y1_y2" and it calculates the probability of observing the responses $y_1$ and $y_2$ within the number of participants $n_1$ and $n_2$ respectively. 
 
-To see which values of $\lambda$ and $\gamma$ are required to get a Type I error of $\le 0.05$, I will plot Type 1 error vs $\lambda$ and $\gamma$ separately. the plot for $\gamma$ vs Type I error here appesrs to be very unhelpful, hence i will begin by choosing a optimal $\lambda$. The clustering effect shown in graph is gievn by each cluster represtenting a differnt value of the other parameter $\gamma$, from the lines I have added (blue at Type 1 = 0.05 and green at $\lambda = 0.96$), I observe that to the right of $\lambda = 0.96$, the Type I error is always $\le 0.05$. However for certain choices of $\gamma$, the combination with $\lambda = 0.94$ and $\lambda = 0.92$ results in the desired bound for type I error.
+To see which values of $\lambda$ and $\gamma$ are required to get a Type I error of $\le 0.05$, I will plot Type 1 error vs $\lambda$ and $\gamma$ separately. the plot for $\gamma$ vs Type I error here appears to be very unhelpful, hence i will begin by choosing a optimal $\lambda$. The clustering effect shown in graph is given by each cluster representing a different value of the other parameter $\gamma$, I have added lines (blue at Type 1 = 0.05 and green at $\lambda = 0.96$), I observe that to the right of $\lambda = 0.96$, the Type I error is always $\le 0.05$. However for certain choices of $\gamma$, the combination with $\lambda = 0.94$ and $\lambda = 0.92$ results in the desired bound for type I error.
 
-```{r, fig.show="hold", out.width="50%"}
+```{r, echo = FALSE, fig.show="hold", out.width="50%"}
 seq_T1s_bind <- cbind(lambda_gamma_seq, T1s)
 seq_T1s_bind$lambda <- round(seq_T1s_bind$lambda, 2)
 seq_T1s_bind$gamma <- round(seq_T1s_bind$gamma, 2)
@@ -84,7 +82,7 @@ abline(v=0.96, col ="green")
 plot(seq_T1s_bind$gamma,seq_T1s_bind$T1s)
 ```
 
-To look further into optimal values for $\gamma$, I will re-create the plot for only the suitable values of $\lambda$ mentioned above.  
+Currently thr plot of $\gamma$ against type I error is fairly useless, so to look further into optimal values for $\gamma$, I will re-create the plot for only the suitable values of $\lambda$ mentioned above.  
 
 ```{r, echo = FALSE, fig.show="hold", out.width="50%"}
 sub1 <- seq_T1s_bind[seq_T1s_bind$lambda == 0.98, ]  
@@ -92,16 +90,14 @@ sub2 <- seq_T1s_bind[seq_T1s_bind$lambda == 0.96, ]
 sub3 <- seq_T1s_bind[seq_T1s_bind$lambda == 0.94, ]
 sub4 <- seq_T1s_bind[seq_T1s_bind$lambda == 0.92, ]
 
-plot(sub1$gamma, sub1$T1s)
-plot(sub2$gamma, sub2$T1s)
 plot(sub3$gamma, sub3$T1s)
 abline(h=0.05, col = "red")
 plot(sub4$gamma, sub4$T1s)
 abline(h=0.05, col = "red")
 ```
+From these plots I observe that for $\lambda \in [0.92,0.94]$, to achieve a Type 1 error $\le 0.05$ we would require $\gamma = 0$ which is not a reasonable choice as $\gamma$ is restricted to $[0,\infty]$. Hence I I conclude that for to achieve the maximum value of 0.05 for type I error I will choose $\lambda \in [0.96,1]$ and to find an optimal $\gamma > 0$ I will move on to exploring the type II error rate. 
 
-
-I will now look at the optimal values for the type II error rate 
+I will now look at the optimal values for the type II error rate; I begin by evaluating a function named "evaluate_seq_T2" (which lives in the Functions.R folder) over my previous grid of $\lambda$'s and $\gamma$'s and for n1=30 and n2=60 again. A type II error rate is defined, in this setting, as calling a unsuccessful trial at the end of either stage 1 or stage 2. This would happen if $P(\theta < 0.5 | y_1) > C(n_1)$ (failing to continue at stage 1) or $P(\theta < 0.5 | y_1) < C(n_1)$ and $P(\theta < 0.5 | y_2) < C(n_2)$ (calling a successful trial at stage 1 but not at stage 2). This idea is laid out in a function named "Type2_exact" in the Functions folder, which implements the idea by using "(!go_1)|(go_2)" which in R means "don't go at stage 1 or don't go at stage 2 ". 
 
 
 ```{r}
@@ -109,36 +105,57 @@ source("./R/functions.R")
 T2s <- apply(lambda_gamma_seq, 1, evaluate_seq_T2, n1=30, n2=60)
 ```
 
+I the have gone on to plot the Type II error rates vs the decision parameters $\lambda$ and $\gamma$. On the plot of $\lambda$ vs type II error rates I have added blue vertical lines to represent the interval I decided for $\lambda$ from the type I error, this shows there are several combinations with $\gamma$ which result in the desired range for type II error. 
 
-
-```{r}
+```{r, echo = FALSE, fig.show="hold", out.width="50%"}
 seq_T2s_bind <- cbind(lambda_gamma_seq, T2s)
 #Make values of lambda and gamma 2 decimal places 
 seq_T2s_bind$lambda <- round(seq_T2s_bind$lambda, 2)
 seq_T2s_bind$gamma <- round(seq_T2s_bind$gamma, 2)
 
 plot(seq_T2s_bind$lambda, seq_T2s_bind$T2s)
+abline(h = 0.2, col="red")
+abline(v = c(0.96,0.98), col = "blue")
 
 plot(seq_T2s_bind$gamma, seq_T2s_bind$T2s)
+abline(h = 0.2, col = "red")
 ```
+By observation of the $\gamma$ plot I see that there appears to a cluster linked to a value of $\lambda$ where type II error always equals 1, hence to find what this value of $\lambda$ is I will make a subsection of results which only includes rows where type 2 error = 1. From the print out of this I see that $\lambda = 1$ results in this type II error, this agrees with my previous conclusion I made so can be disregarded. 
 
 ```{r}
-# By inspection can see Type 2 equal one see what values of gamma 
 seq_T2s_bind$T2s <- round(seq_T2s_bind$T2s, 3)
 
 sub5 <- seq_T2s_bind[seq_T2s_bind$T2s == 1, ]
+head(sub5)
 # so when lambda = 1 T2 not in the range
 
 ```
 
+Finally, to pick my value for $\gamma$ I will make 2 further subsections of the results, one for when $\lambda = 0.98$ and one for $\lambda = 0.96$, as these match with my previous interval I have decided for $\lambda$.
 
-```{r}
+```{r, echo = FALSE, fig.show="hold", out.width="50%"}
 # Type 1 errors lowest for lambda = 0.98
 sub6 <- seq_T2s_bind[seq_T2s_bind$lambda == 0.98, ]
 plot(sub6$gamma, sub6$T2s)
+abline(h = 0.2, col = "red")
 
-sub7 <- seq_T2s_bind[seq_T2s_bind$lambda == 0.94, ]
+sub7 <- seq_T2s_bind[seq_T2s_bind$lambda == 0.96, ]
+plot(sub7$gamma, sub7$T2s)
+abline(h = 0.2, col = "red")
 # type 2 error gets smaller as lambda gets smaller
 ```
+
+From inspection of the plots and the output of the two subsections, I see that the value of type II error drops below 0.2 for $\gamma \ge 0.12$ hence any value of $\gamma \ge 0.12$ would give us the desired results. However we ideally want the probability of type II error to be as low as possible as this means our study would have greater power, this is important as it means we are more likely to detect a true result. To archive this minimal type 11 error I would choose $\lambda = 0.96$ as here there is a minimum type II error of 0.063 versus 0.103 for $\lambda = 0.98$. The plot shows us that the type II error rate appears to be quite consistent after $\gamma =1$ and from the output of the subsection I see that values of $\gamma \ge 2.08$ give the minimum type II error rate of 0.063. I will pick my optimal value of $\gamma$ to be 2.08 for ease as if i wanted to do further investigations it reduces the interval my grid would have to search over. 
+
+```{r, echo = T, results = 'hide'}
+T1_lambda0.96 <- seq_T1s_bind[seq_T1s_bind$lambda == 0.96, ]
+T2_lambda0.96 <- seq_T2s_bind[seq_T2s_bind$lambda == 0.96, ]
+T1_lambda0.96
+T2_lambda0.96
+```
+
+
+Hence for the sample size parameters of n1 = 30 and n2 = 60, I have found that the optimal values of $\lambda = 0.96$ and $\gamma = 2.08$. And from inspection of subsections of grids made where $\lambda = 0.96$ I see that these would results a type I error rate of 0.04621577 and type II error rate of 0.063 which satisfy the bounds given in the brief. 
+ 
 
 
