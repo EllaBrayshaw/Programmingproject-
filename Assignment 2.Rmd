@@ -17,9 +17,7 @@ $$ P(\theta | y_i) = \frac{P(y_i|\theta)*P(\theta)}{P(y_i)} $$
  
 We use this posterior probability to determine progression through the probability of futility. We define the probability of futility as the probability of a response, $\theta < 0.5$ given the observed responses : 
 $$P(\theta < 0.5 | y_i) $$
-We ideally want this probability to be low as the probability of observing a response is poor. To decide whether we carry on to the next stage we need to define a threshold which varies at each stage to compare this too, we define this threshold to be $$C(n_i) = 1 - \lambda(\frac{n_i}{n_2})^{\gamma}$$ In this report we will investigate choices of these stopping rule parameters $\lambda$ and $\gamma$
-I defined functions which calculated the probability of futility as well as the thresholds in the Functions.R folder ......
-
+We ideally want this probability to be low as the probability of observing a response is poor. To decide whether we carry on to the next stage we need to define a threshold which varies at each stage to compare this too, we define this threshold to be $$C(n_i) = 1 - \lambda(\frac{n_i}{n_2})^{\gamma}$$. In general the stopping rule would be that the trial would stop if $P(\theta < 0.5 | y_i) > C(n_i)$. In this report we will investigate choices of these stopping rule parameters $\lambda$ and $\gamma$.
 
 I will now apply the BOP2 trial design to the RESERVE trial. The RESERVE (pREciSion markERs for VEnetoclax in multiple myeloma) trial is a clinical trial which is looking at the effects of treating patients with relapsed/refractory multiple myeloma (RRMM) with Vendex in combination with CyVenDex. The RESERVE trial is currently in phase II and we are wanting to investigate if the treatment has a large enough impact on tumor size to warrant a larger phase III trial. As there is uncertainty to the effectiveness and toxicity of the drug we want to work in 2 stages where the first stage has a lower sample size. This has better ethical, financial and efficiency considerations. In the this report i will be using $n_1$ participants in stage one of the trial and $\tilde{n_2}$ participants in stage 2, this is if we observe enough responses in stage 1 to move onto stage 2. This leads to a total of $n_2 = n_1 + \tilde{n_2}$ participants at the end of stage 2. 
 
@@ -30,11 +28,11 @@ To begin my exploration of the RESERVE trial I wan to find the optimal values of
 
 g<-seq(0,10,length.out = 100)
 
-plot(1-0.3*(0.5)^g, ylab = "Decision threshold", main = "Plot for lambda = 0.3")
-abline(v=60, col="magenta")
+plot(g, 1-0.3*(0.5)^g, xlab="gammas", ylab = "Decision threshold", main = "Plot for lambda = 0.3")
+abline(v=6, col="magenta")
 
-plot(1-0.7*(0.5)^g, ylab = "Decision threshold", main = "Plot for lambda = 0.7")
-abline(v=60, col="magenta")
+plot(g, 1-0.7*(0.5)^g, xlab="gammas", ylab = "Decision threshold", main = "Plot for lambda = 0.7")
+abline(v=6, col="magenta")
 ```
 
 Here I have looked at how the decision threshold, $C(n_i) = 1 - \lambda(\frac{n_i}{n_2})^{\gamma}$, changes for different values of $\gamma$ ( which I created with a sequence ). I chose the value of $\frac{n_i}{n_2}=0.5$, as $n_1 < n_2$ hence the faction will always be less than 1. These plots show that beyond a vale of $\gamma = 6$ there is little change to the value of the decision threshold, $C(n_i)$. Hence I will chose the bound $0\le \gamma \le 6$. I have the created a grid of both the values of $\lambda$ and $\gamma$ over the chosen intervals and have named this "lambda_gamma": 
@@ -44,7 +42,7 @@ lambda_gamma_seq <- expand.grid(lambda = seq(0, 1, length.out = 50),
                        gamma = seq(0, 6, length.out = 50))
 ```
 
-I have chosen the length of each vector for the parameter to be 50 as ....
+I have chosen the length of each vector for the parameter to be 50 .. #### add time calulation
 
 To evaluate the type I and type II error rate over this grid I require to call on a function that I have coded; such functions I have stored in a R script of this R project called "Function.R". Using the command : 
 
@@ -54,16 +52,17 @@ source("./R/functions.R")
 
 I can easily make use of these functions without having to include the code each time. 
 
-In here is a function called "Type1_exact", which I will now use to evaluate the probability of a type 1 error over the values in "lambda_gamma". A type 1 error is such that we declare a successful trial at the end of stage 2, under the null hypothesis that $\theta = 0.5$. This means that we require $P(\theta < 0.5 | y_1) < C(n_1)$ and $P(\theta < 0.5 | y_1, y_2) < C(n_2)$, we require stage 1 to be successful to move to stage 2 hence both of these are needed. To begin I will set $n_1 = 30$ and $n_2 = 60$. 
+In here is a function called "Type1_exact", which I will now use to evaluate the probability of a type 1 error over the values in "lambda_gamma". A type 1 error is such that we declare a successful trial at the end of stage 2, under the null hypothesis that $\theta = 0.5$. This means that we require $P(\theta < 0.5 | y_1) < C(n_1)$ and $P(\theta < 0.5 | y_1, y_2) < C(n_2)$, we require stage 1 to be successful to move to stage 2 hence both of these are needed. 
 
-
+### $n_1 = 30$ and $n_2 = 90$
+To begin I will set $n_1 = 30$ and $n_2 = 60$. 
 
 ```{r}
 source("./R/functions.R")
 T1s <- apply(lambda_gamma_seq, 1, evaluate_seq_T1, n1=30, n2=60)
 ```
 
-The code above shows me applying the grid of $\lambda$'s and $\gamma$'s over a function named "evaluate sequence" which allows us to evaluate another function named "Type1_exact" over the grid. The Type1_exact is a function of $\lambda$, $\gamma$, $n_1$ and $n_2$ which also uses another function in the folder, this function is called "prob_y1_y2" and it calculates the probability of observing the responses $y_1$ and $y_2$ within the number of participants $n_1$ and $n_2$ respectively. 
+The code above shows me applying the grid of $\lambda$'s and $\gamma$'s over a function named "evaluate sequence" which allows us to evaluate another function named "Type1_exact" over the grid. The Type1_exact is a function of $\lambda$, $\gamma$, $n_1$ and $n_2$ which also uses another function in the folder, this function is called "prob_y1_y2" and it calculates the probability of observing the responses $y_1$ and $y_2$ within the number of participants $n_1$ and $n_2$ respectively. ###
 
 To see which values of $\lambda$ and $\gamma$ are required to get a Type I error of $\le 0.05$, I will plot Type 1 error vs $\lambda$ and $\gamma$ separately. the plot for $\gamma$ vs Type I error here appears to be very unhelpful, hence i will begin by choosing a optimal $\lambda$. The clustering effect shown in graph is given by each cluster representing a different value of the other parameter $\gamma$, I have added lines (blue at Type 1 = 0.05 and green at $\lambda = 0.96$), I observe that to the right of $\lambda = 0.96$, the Type I error is always $\le 0.05$. However for certain choices of $\gamma$, the combination with $\lambda = 0.94$ and $\lambda = 0.92$ results in the desired bound for type I error.
 
@@ -73,11 +72,11 @@ seq_T1s_bind$lambda <- round(seq_T1s_bind$lambda, 2)
 seq_T1s_bind$gamma <- round(seq_T1s_bind$gamma, 2)
 
 
-plot(seq_T1s_bind$lambda,seq_T1s_bind$T1s)
+plot(seq_T1s_bind$lambda, seq_T1s_bind$T1s, xlab = "Lambda", ylab = "Type I errors", main = "type I errors for n1 = 30 and n2 = 60")
 abline(h=0.05, col = "blue")
 abline(v=0.96, col ="green")
 
-plot(seq_T1s_bind$gamma,seq_T1s_bind$T1s)
+plot(seq_T1s_bind$gamma,seq_T1s_bind$T1s, xlab = "Gamma", ylab = "Type I errors", main = "type I errors for n1 = 30 and n2 = 60")
 ```
 
 Currently thr plot of $\gamma$ against type I error is fairly useless, so to look further into optimal values for $\gamma$, I will re-create the plot for only the suitable values of $\lambda$ mentioned above.  
@@ -88,9 +87,10 @@ sub2 <- seq_T1s_bind[seq_T1s_bind$lambda == 0.96, ]
 sub3 <- seq_T1s_bind[seq_T1s_bind$lambda == 0.94, ]
 sub4 <- seq_T1s_bind[seq_T1s_bind$lambda == 0.92, ]
 
-plot(sub3$gamma, sub3$T1s)
+plot(sub3$gamma, sub3$T1s, xlab = "Gamma", ylab = "Type 1 errors", main = "Type I errors for lambda = 0.94, n1 = 30 and n2 = 60")
 abline(h=0.05, col = "red")
-plot(sub4$gamma, sub4$T1s)
+
+plot(sub4$gamma, sub4$T1s,  xlab = "Gamma", ylab = "Type 1 errors", main = "Type I errors for lambda = 0.92, n1 = 30 and n2 = 60")
 abline(h=0.05, col = "red")
 ```
 From these plots I observe that for $\lambda \in [0.92,0.94]$, to achieve a Type 1 error $\le 0.05$ we would require $\gamma = 0$ which is not a reasonable choice as $\gamma$ is restricted to $[0,\infty]$. Hence I I conclude that for to achieve the maximum value of 0.05 for type I error I will choose $\lambda \in [0.96,1]$ and to find an optimal $\gamma > 0$ I will move on to exploring the type II error rate. 
@@ -111,11 +111,11 @@ seq_T2s_bind <- cbind(lambda_gamma_seq, T2s)
 seq_T2s_bind$lambda <- round(seq_T2s_bind$lambda, 2)
 seq_T2s_bind$gamma <- round(seq_T2s_bind$gamma, 2)
 
-plot(seq_T2s_bind$lambda, seq_T2s_bind$T2s)
+plot(seq_T2s_bind$lambda, seq_T2s_bind$T2s, xlab = "Lambda", ylab = "Type II errors", main = "Type II errors for  n1 = 30 and n2 = 60")
 abline(h = 0.2, col="red")
 abline(v = c(0.96,0.98), col = "blue")
 
-plot(seq_T2s_bind$gamma, seq_T2s_bind$T2s)
+plot(seq_T2s_bind$gamma, seq_T2s_bind$T2s, xlab = "Gamma", ylab = "Type II errors", main = "type II errors for n1 = 30 and n2 = 60")
 abline(h = 0.2, col = "red")
 ```
 By observation of the $\gamma$ plot I see that there appears to a cluster linked to a value of $\lambda$ where type II error always equals 1, hence to find what this value of $\lambda$ is I will make a subsection of results which only includes rows where type 2 error = 1. From the print out of this I see that $\lambda = 1$ results in this type II error, this agrees with my previous conclusion I made so can be disregarded. 
@@ -132,18 +132,18 @@ head(sub5)
 Finally, to pick my value for $\gamma$ I will make 2 further subsections of the results, one for when $\lambda = 0.98$ and one for $\lambda = 0.96$, as these match with my previous interval I have decided for $\lambda$.
 
 ```{r, echo = FALSE, fig.show="hold", out.width="50%"}
-# Type 1 errors lowest for lambda = 0.98
+
 sub6 <- seq_T2s_bind[seq_T2s_bind$lambda == 0.98, ]
-plot(sub6$gamma, sub6$T2s)
+plot(sub6$gamma, sub6$T2s, xlab = "Gamma", ylab = "Type II errors", main = "Type II errors for lambda = 0.98, n1 = 30 and n2 = 60")
 abline(h = 0.2, col = "red")
 
 sub7 <- seq_T2s_bind[seq_T2s_bind$lambda == 0.96, ]
-plot(sub7$gamma, sub7$T2s)
+plot(sub7$gamma, sub7$T2s,  xlab = "Gamma", ylab = "Type II errors", main = "Type II errors for lambda = 0.96, n1 = 30 and n2 = 60")
 abline(h = 0.2, col = "red")
-# type 2 error gets smaller as lambda gets smaller
+
 ```
 
-From inspection of the plots and the output of the two subsections, I see that the value of type II error drops below 0.2 for $\gamma \ge 0.12$ hence any value of $\gamma \ge 0.12$ would give us the desired results. However we ideally want the probability of type II error to be as low as possible as this means our study would have greater power, this is important as it means we are more likely to detect a true result. To archive this minimal type 11 error I would choose $\lambda = 0.96$ as here there is a minimum type II error of 0.063 versus 0.103 for $\lambda = 0.98$. The plot shows us that the type II error rate appears to be quite consistent after $\gamma =1$ and from the output of the subsection I see that values of $\gamma \ge 2.08$ give the minimum type II error rate of 0.063. I will pick my optimal value of $\gamma$ to be 2.08 for ease as if i wanted to do further investigations it reduces the interval my grid would have to search over. 
+From inspection of the plots and the output of the two subsections, I see that the value of type II error drops below 0.2 for $\gamma \ge 0.12$ hence any value of $\gamma \ge 0.12$ would give us the desired results. However we ideally want the probability of type II error to be as low as possible as this means our study would have greater power, this is important as it means we are more likely to detect a true result. To archive this minimal type 11 error I would choose $\lambda = 0.96$ as here there is a minimum type II error of 0.063 versus 0.103 for $\lambda = 0.98$. The plot shows us that the type II error rate appears to be quite consistent after $\gamma =1$ and from the output of the subsection I see that values of $\gamma \ge 2.08$ give the minimum type II error rate of 0.063. I will pick my optimal value of $\gamma$ to be 2.08as this results in a minimal type II error rate, whilst slightly lower values of $\gamma$ results in lower type I error the difference between values is not as large. 
 
 ```{r, echo = T, results = 'hide'}
 T1_lambda0.96 <- seq_T1s_bind[seq_T1s_bind$lambda == 0.96, ]
@@ -153,7 +153,9 @@ T2_lambda0.96
 ```
 
 
-Hence for the sample size parameters of $n_1 = 30$ and $n_2 = 60$, I have found that the optimal values of $\lambda = 0.96$ and $\gamma = 2.08$. And from inspection of subsections of grids made where $\lambda = 0.96$ I see that these would results a type I error rate of 0.04621577 and type II error rate of 0.063 which satisfy the bounds given in the brief. 
+Hence for the sample size parameters of $n_1 = 30$ and $n_2 = 60$, I have found that the optimal values of $\lambda = 0.96$ and $\gamma = 2.08$. And from inspection of subsections of grids made where $\lambda = 0.96$ I see that these would results a type I error rate of 0.0462 and type II error rate of 0.063 which satisfy the bounds given in the brief. 
+
+### $n_1 = 60$ and $n_2 = 120$
  
 I will now go on to investigate how these decsion rule parameters change as the sample size changes, I will follow similar steps to what I carried out previously. To start I shall simply double the previous sample sizes to $n_1 = 60$ and $n_2 = 120$, keeping the 2:1 ratio. So to begin I evaluate the function that calculate probability of Type I and Type II errors but will change the parameter values to the new ones. And as before conbined the calculated type I and type II errors into a grid with their corresponding values of $\lambda$ and $\gamma$, I also round the values of the parameters to decimal places so that I am able to plot them but also make sub grids of them. 
 
@@ -174,13 +176,13 @@ seq_T2s_60_bind$gamma <- round(seq_T2s_60_bind$gamma, 2)
 Moving onto the plots for type I error vs the parameters, similar to before the plot for type 1 error rates vs $\gamma$ is not very useful. However from the plot for $\lambda$ I see that the type 1 error rate falls below 0.05 for more combinations with $\lambda = 0.94$ with the greater sample size. I will look into these combinations further as I previously found that the lower the value of $\lambda$ the lower the Type II error whilst having little impact on the type I error.I also observe that the is again a gamma corresponding to $\lambda = 0.92$ which gets us a type I error in the desired bound.
 
 ```{r echo = FALSE, fig.show="hold", out.width="50%"}
-plot(seq_T1s_60_bind$lambda,seq_T1s_60_bind$T1s)
+plot(seq_T1s_60_bind$lambda,seq_T1s_60_bind$T1s, xlab = "Lambda", ylab = "Type I errors", main = "Type I errors for n1 = 60 and n2 = 120")
 abline(h=0.05, col = "blue")
 
-plot(seq_T1s_60_bind$gamma,seq_T1s_60_bind$T1s)
+plot(seq_T1s_60_bind$gamma, seq_T1s_60_bind$T1s, xlab = "Gamma", ylab = "Type I errors", main = "Type I errors for n1 = 60 and n2 = 120")
 ```
  
-Looking at the plots for the subsections of the original grid; when $\lambda = 0.94$ I can there are 3 values of $\gamma$ that result in a type 1 error rate of less the 0.05 as before diregarding the point at zero as $\gamma >0.$ I can also rule out the option of $\lambda = 0.92$ as the only value of gamma in combination with this that leads to a low enough type 1 error is $\gamma = 0$. 
+Looking at the plots for the subsections of the original grid; when $\lambda = 0.94$ I can there are 3 values of $\gamma$ that result in a type 1 error rate of less the 0.05 as before disregarding the point at zero as $\gamma >0.$ I can also rule out the option of $\lambda = 0.92$ as the only value of gamma in combination with this that leads to a low enough type 1 error is $\gamma = 0$. 
 
 ```{r, echo = FALSE, fig.show="hold", out.width="50%"}
 sub8 <- seq_T1s_60_bind[seq_T1s_60_bind$lambda == 0.98, ]  
@@ -188,32 +190,72 @@ sub9 <- seq_T1s_60_bind[seq_T1s_60_bind$lambda == 0.96, ]
 sub10 <- seq_T1s_60_bind[seq_T1s_60_bind$lambda == 0.94, ]
 sub11 <- seq_T1s_60_bind[seq_T1s_60_bind$lambda == 0.92, ]
 
-plot(sub10$gamma, sub10$T1s)
+plot(sub10$gamma, sub10$T1s, xlab = "Gamma", ylab = "Type I errors", main = "Type I errors for Lambda = 0.94, n1 = 60 and n2 = 120")
 abline(h=0.05, col = "red")
-plot(sub11$gamma, sub11$T1s)
+plot(sub11$gamma, sub11$T1s, xlab = "Gamma", ylab = "Type I errors", main = "Type I errors for Lambda = 0.92, n1 = 60 and n2 = 120")
 abline(h=0.05, col = "red")
 ```
 
-
-To decide a value of $\gamma$ to use in combination with $\lambda = 0.94$, I will consider the plot of the type II error rates against $\gamma$. The plot below shows that the type II error rate falls below the maximum value of 0.2 for all combinations, however you can see that ideally a larger choice of $\gamma$ will be preferred as type II error rate decreases as $\gamma$ increases. Hence to decide the value of $\gamma$ I shall look at the summary of the table earlier. 
-
-```{r, echo = FALSE}
-sub15 <- seq_T2s_60_bind[seq_T2s_60_bind$lambda == 0.94, ]
-plot(sub15$gamma, sub15$T2s_60)
-abline(h = 0.2, col = "red")
-```
+To decide $\gamma$ I will use the "head" function to view the upper subsection of my grid for when $\lambda = 0.94$, from this I see any value of $\gamma$ results in the desired bound for type II error so I consider type I error again. From this summary I see that for the desired maximum type I error to be met we require $\gamma \in (0,0.24]$, I will take $\gamma = 0.24$ as this results in bigger improvement to type II error without affecting type I error too much. This in combination with $\lambda = 0.94$ results in a type I error rate of 0.045 and a type II error rate of 0.011. These are both lower then the rates found for the smaller sample size, in particular the probability of type II error has decreased by 5.2% suggesting increasing sample size reduces the probability of stopping the trial early when results are actually significant, this is due to larger sample sizes reducing uncertainty in the trial. 
 
 
-
-```{r, echo = FALSE, fig.show="hold", out.width="50%"}
+```{r, echo = FALSE, fig.show="hold", out.width="50%", fig.align = 'center'}
 sub16 <- seq_T1s_60_bind[seq_T1s_60_bind$lambda == 0.94, ]
 head(sub16)
-
+sub15<- seq_T2s_60_bind[seq_T2s_60_bind$lambda == 0.94, ]
 head(sub15)
 ```
 
-From this summary I see that for the desired maximum type I error to be met we require $\gamma \in (0,0.24]$, I will take $\gamma = 0.24$ as this results in bigger improvement to type II error without affecting type I error too much. This in combination with $\lambda = 0.94$ results in a type I error rat of 0.045 and a type II error rate of 0.011. These are both lower then the rates found for the smaller sample size, in particular the probability of type II error has decreased by quite a lot suggesting increasing sample size reduces the probability of stopping the trial early when results are actually significant.... 
+### $n_1 = 30$ and $n_2 = 90$
 
+I will now see if changing the ratio of the number of patients in stage 1 to the number of patients in stage 2 has a impact on the error rates. I will use a ratio of 1:3 with the original sample size of $n_1 = 30$ and follow similar steps to before to find optimal values of the parameters and the corresponding error rates. 
+
+```{r}
+source("./R/functions.R")
+T1s_3 <- apply(lambda_gamma_seq, 1, evaluate_seq_T1, n1 = 30, n2 = 90)
+T2s_3 <- apply(lambda_gamma_seq, 1, evaluate_seq_T2, n1 = 60, n2 = 180)
+
+```
+
+Looking at the plot for type 1 error vs $\lambda$ I can see there may be a larger potential range, this being $\lambda \in [0.88, 1]$. Once again I will use the lower value of $\lambda$ as it results in lower type II error rate whilst having little impact on the type I error rate. Using the second graph I see that the lowest suitable value is $\lambda = 0.9$.
+
+```{r, echo = FALSE, fig.show="hold", out.width="50%"}
+seq_T1s_3_bind <- cbind(lambda_gamma_seq, T1s_3)
+seq_T1s_3_bind$lambda <- round(seq_T1s_3_bind$lambda, 2)
+seq_T1s_3_bind$gamma <- round(seq_T1s_3_bind$gamma, 2)
+
+seq_T2s_3_bind <- cbind(lambda_gamma_seq, T2s_3)
+seq_T2s_3_bind$lambda <- round(seq_T2s_3_bind$lambda, 2)
+seq_T2s_3_bind$gamma <- round(seq_T2s_3_bind$gamma, 2)
+
+
+plot(seq_T1s_3_bind$lambda, seq_T1s_3_bind$T1s_3, xlab = "Lambda", ylab = "Type I errors", main = "Type I errors for n1 = 30 and n2 = 90")
+abline(h=0.05, col="red")
+abline(v=0.88, col="blue")
+
+sub17 <- seq_T1s_3_bind[seq_T1s_3_bind$lambda == 0.88, ]  
+sub18 <- seq_T1s_3_bind[seq_T1s_3_bind$lambda == 0.90, ]
+
+plot(sub18$gamma, sub18$T1s_3, xlab = "Gamma", ylab = "Type I errors", main = "Type I errors for Lambda = 0.90, n1 = 30 and n2 = 90")
+abline(h=0.05, col="red")
+
+
+```
+
+From looking at the output of the subsections of the grids where $\lambda = 0.9$ I see that all values of $\gamma$ results in a type II error rate of $\le 0.2$, hence I decide the parameter based on type I error rate. Taking $\gamma = 0.12$ as this results in a much lower type II error rate without changing type I too much. This results in the optimal parameters being $\lambda = 0.9$ and $\gamma= 0.12$ with probability of type I error being 0.0485	and type II error being 0.00996. 
+
+```{r}
+head(sub18)
+sub19 <- seq_T2s_3_bind[seq_T2s_3_bind$lambda == 0.90, ]
+head(sub19)
+```
+
+
+From this I can see that from the original sample sizes of $n_1 = 30$ and $n_2 = 60$, the type I error rate has increased slightly by 0.3% whereas the type II error has had decreased by 5%. This is a similar decreases to type II error as previously seen when sample size was doubled, hence as sample size is larger then the original one I began with I could suggest that increasing sample size can result in a decrease of type II error rate. However strong assumptions cannot be made as I would have to explore with many more options. The small changes to type I error for both situations where sample sizes have increased suggests to me that changing the sample sizes doesn't have much of an impact on type I error, this may be because the maximum type I error rate of 0.05 we are looking for is already quite low. 
+
+When applying these findings to the sample sizes to use in the different stages of the RESERVE trial I would suggest that the situation where we use a ratio different from 1:2 for the sample sizes at each stage could be ideal in practice. My reasoning for this conclusion are based upon that when we only increase the sample size of the second stage it  requires less patients overall then just increasing sample size of both stages. 
+
+ 
 
 
 
