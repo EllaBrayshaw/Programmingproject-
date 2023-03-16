@@ -107,18 +107,3 @@ Sample_size_exact <- function(lambda, gamma, n1, n2, theta) {
   
   sum(n1 * stops * y_1_probs + n2 * (!stops) * y_1_probs)
 }
-
-
-
-
-
-
-
-
-#Function to test P(y1) sums to one
-test_prob_y1 <- function() {
-  # Check that the probabilities sum to 1.
-  n1 <- 30
-  s <- sum(prob_y1(0:n1, n1))
-  return(all.equal(s, 1))
-}
